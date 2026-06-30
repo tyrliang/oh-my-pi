@@ -18,6 +18,9 @@ export type HindsightScoping = "global" | "per-project" | "per-project-tagged";
 export interface HindsightConfig {
 	hindsightApiUrl: string | null;
 	hindsightApiToken: string | null;
+	/** Timeout for each Hindsight HTTP request in ms. Prevents silent hangs when the
+	 *  Tailscale DERP relay path is idle and WireGuard needs to re-handshake. */
+	connectTimeout: number;
 
 	bankId: string | null;
 	bankIdPrefix: string;
@@ -134,6 +137,7 @@ export function loadHindsightConfig(settings: Settings, env: NodeJS.ProcessEnv =
 	const config: HindsightConfig = {
 		hindsightApiUrl: apiUrlEnv ?? settings.get("hindsight.apiUrl") ?? null,
 		hindsightApiToken: apiTokenEnv ?? settings.get("hindsight.apiToken") ?? null,
+		connectTimeout: envInt(env.HINDSIGHT_CONNECT_TIMEOUT) ?? settings.get("hindsight.connectTimeout") ?? 8000,
 
 		bankId: bankIdEnv ?? settings.get("hindsight.bankId") ?? null,
 		bankIdPrefix: settings.get("hindsight.bankIdPrefix") ?? "",

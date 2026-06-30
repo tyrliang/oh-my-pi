@@ -22,6 +22,8 @@ export interface HindsightApiOptions {
 	baseUrl: string;
 	apiKey?: string;
 	userAgent?: string;
+	/** Abort each request after this many ms. Prevents silent hangs on idle Tailscale paths. */
+	connectTimeout?: number;
 }
 
 export interface RecallResult {
@@ -213,9 +215,11 @@ interface RequestOptions {
 export class HindsightApi {
 	#baseUrl: string;
 	#headers: Record<string, string>;
+	#connectTimeout: number;
 
 	constructor(options: HindsightApiOptions) {
 		this.#baseUrl = options.baseUrl.replace(/\/+$/, "");
+		this.#connectTimeout = options.connectTimeout ?? 8000;
 		this.#headers = {
 			"User-Agent": options.userAgent ?? DEFAULT_USER_AGENT,
 			"Content-Type": "application/json",
@@ -489,7 +493,7 @@ export class HindsightApi {
 			if (qs) url += `?${qs}`;
 		}
 
-		const init: RequestInit = { method, headers: this.#headers };
+		const init: RequestInit = { method, headers: this.#headers, signal: AbortSignal.timeout(this.#connectTimeout) };
 		if (opts?.body !== undefined) {
 			init.body = JSON.stringify(pruneUndefined(opts.body));
 		}
@@ -619,5 +623,6 @@ export function createHindsightClient(config: HindsightConfig & { hindsightApiUr
 		baseUrl: config.hindsightApiUrl,
 		apiKey: config.hindsightApiToken ?? undefined,
 		userAgent: USER_AGENT,
+		connectTimeout: config.connectTimeout,
 	});
 }
