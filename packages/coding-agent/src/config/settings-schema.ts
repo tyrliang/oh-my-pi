@@ -2599,6 +2599,7 @@ export const SETTINGS_SCHEMA = {
 	},
 
 	"hindsight.apiToken": { type: "string", default: undefined },
+	"hindsight.connectTimeout": { type: "number", default: 8000 },
 
 	"hindsight.bankId": {
 		type: "string",
